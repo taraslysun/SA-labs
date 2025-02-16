@@ -10,7 +10,7 @@ def save_message(message: dict):
     print(message)
     message_id, message_content = list(message.items())[0]
     table[message_id] = message_content
-    return 200
+    return {message_id: message_content}
 
 @app.get('/')
 def get_messages():

@@ -22,4 +22,4 @@ def post_facade(message: dict):
     message_content = message.get("msg")
     message_id = str(uuid.uuid4())
     requests.post(loggings_address, json={message_id: message_content})
-    return 200
+    return {message_id: message_content}
