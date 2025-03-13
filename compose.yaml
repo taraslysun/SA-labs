@@ -1,0 +1,63 @@
+services:
+
+  facade-service:
+    build: ./facade-service
+    ports:
+      - "8000:8000"
+    networks:
+      - hazelcast-network
+
+  logging-service-1:
+    build: ./logging-service
+    environment:
+      - HZ_PORT=5701
+      - HZ_IP= #
+    ports:
+      - "8001:8001"
+    networks:
+      - hazelcast-network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  logging-service-2:
+    build: ./logging-service
+    environment:
+      - HZ_PORT=5702
+      - HZ_IP= #
+    ports:
+      - "8002:8001"
+    networks:
+      - hazelcast-network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  logging-service-3:
+    build: ./logging-service
+    environment:
+      - HZ_PORT=5703
+      - HZ_IP= #
+    ports:
+      - "8003:8001"
+    networks:
+      - hazelcast-network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+      
+  messages-service:
+    build: ./messages-service
+    networks:
+      - hazelcast-network
+    ports:
+      - "8007:8007"
+
+  config-server:
+    build: ./config-server
+    ports:
+      - "8008:8008"
+    networks:
+      - hazelcast-network
+
+networks:
+  hazelcast-network:
+    driver: bridge
