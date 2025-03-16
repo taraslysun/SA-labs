@@ -13,8 +13,9 @@ This lab was about further implementing the microservices architecture. The task
 
 ### How to run
 ```bash
-git clone https://github.com/taraslysun/SA-labs/tree/micro_hazelcast
+git clone https://github.com/taraslysun/SA-labs
 cd SA-labs
+git checkout micro_hazelcast
 ```
 
 Make virtual environment
