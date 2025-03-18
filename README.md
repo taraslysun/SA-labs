@@ -29,9 +29,9 @@ Install requirements
 pip install -r requirements.txt
 ```
 
-Launch application
+Launch application (also in the ```compose.yaml``` file specify your ip-address. That will help hazelcast connect to nodes)
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 or (linux-only)
 ```bash
