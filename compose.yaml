@@ -1,0 +1,189 @@
+services:
+
+  facade-service:
+    container_name: facade-service
+    build: ./facade-service
+    ports:
+      - "8000:8000"
+    networks:
+      - service-network
+
+  logging-service-1:
+    container_name: logging-service-1
+    build: ./logging-service
+    environment:
+      - HZ_PORT=5701
+      - HZ_IP=10.10.229.253
+    depends_on:
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
+      zookeeper-1:
+        condition: service_healthy
+    ports:
+      - "8001:8001"
+    networks:
+      - service-network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  logging-service-2:
+    container_name: logging-service-2
+    build: ./logging-service
+    environment:
+      - HZ_PORT=5702
+      - HZ_IP=10.10.229.253
+    ports:
+      - "8002:8001"
+    networks:
+      - service-network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  logging-service-3:
+    container_name: logging-service-3
+    build: ./logging-service
+    environment:
+      - HZ_PORT=5703
+      - HZ_IP=10.10.229.253
+    ports:
+      - "8003:8001"
+    networks:
+      - service-network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+      
+  messages-service-1:
+    container_name: messages-service-1
+    build: ./messages-service
+    depends_on:
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
+      zookeeper-1:
+        condition: service_healthy    
+    networks:
+      - service-network
+    ports:
+      - "8005:8005"
+
+  messages-service-2:
+    container_name: messages-service-2
+    build: ./messages-service
+    depends_on:
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
+      zookeeper-1:
+        condition: service_healthy
+    networks:
+      - service-network
+    ports:
+      - "8006:8005"
+
+  config-server:
+    container_name: config-server
+    build: ./config-server
+    ports:
+      - "8008:8008"
+    networks:
+      - service-network
+
+  zookeeper-1:
+    container_name: zookeeper-1
+    image: confluentinc/cp-zookeeper:latest
+    networks:
+      - service-network
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    healthcheck:
+      test: echo 123
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+
+  kafka-1:
+    container_name: kafka-1
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper-1
+    ports:
+      - "9093:9093"
+    networks:
+      - service-network
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092,PLAINTEXT_HOST://localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_NUM_PARTITIONS: 2
+    healthcheck:
+      test: kafka-topics --bootstrap-server kafka-1:9092 --list
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  kafka-2:
+    container_name: kafka-2
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper-1
+    ports:
+      - "9094:9094"
+    networks:
+      - service-network
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9092,PLAINTEXT_HOST://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_NUM_PARTITIONS: 2
+    healthcheck:
+      test: kafka-topics --bootstrap-server kafka-2:9092 --list
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  kafka-3:
+    container_name: kafka-3
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper-1
+    ports:
+      - "9095:9095"
+    networks:
+      - service-network
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:9092,PLAINTEXT_HOST://localhost:9095
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_NUM_PARTITIONS: 2
+    healthcheck:
+      test: kafka-topics --bootstrap-server kafka-3:9092 --list
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+
+networks:
+  service-network:
+    
+    driver: bridge
