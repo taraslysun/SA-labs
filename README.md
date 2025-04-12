@@ -40,9 +40,24 @@ hostname -I | awk '{print $1}'
 
 Then run the following command to start the application:
 ```bash
+# if the logging service is not working, change the address to your local ip in the compose.sh
 docker compose up --build
 ```
 or (linux-only)
 ```bash
 ./launch_servers.sh
+```
+
+After setting everything up, you can fill the application either by curl:
+```bash
+curl -X POST http://localhost:8000/ -H "Content-Type: application/json" -d '{"msg": "Hello, world!"}'
+```
+or with 100 messages by running the following command:
+```bash
+python3 fill_system.py
+```
+
+And then check the whole system by running the following command:
+```bash
+curl -X GET http://localhost:8000/
 ```

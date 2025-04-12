@@ -13,7 +13,7 @@ services:
     build: ./logging-service
     environment:
       - HZ_PORT=5701
-      - HZ_IP=10.10.229.253
+      - HZ_IP=192.168.1.55
     depends_on:
       kafka-1:
         condition: service_healthy
@@ -35,7 +35,7 @@ services:
     build: ./logging-service
     environment:
       - HZ_PORT=5702
-      - HZ_IP=10.10.229.253
+      - HZ_IP=192.168.1.55
     ports:
       - "8002:8001"
     networks:
@@ -48,7 +48,7 @@ services:
     build: ./logging-service
     environment:
       - HZ_PORT=5703
-      - HZ_IP=10.10.229.253
+      - HZ_IP=192.168.1.55
     ports:
       - "8003:8001"
     networks:
@@ -73,7 +73,7 @@ services:
       - service-network
     ports:
       - "8005:8005"
-
+ 
   messages-service-2:
     container_name: messages-service-2
     build: ./messages-service
@@ -181,6 +181,22 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+
+  kafka-topic-creator:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
+    entrypoint: [
+      "bash", "-c",
+      "sleep 10 && kafka-topics --bootstrap-server kafka-1:9092,kafka-2:9092,kafka-3:9092 --create --topic messages --partitions 3 --replication-factor 3"
+    ]
+    networks:
+      - service-network
 
 
 networks:

@@ -19,7 +19,7 @@ def kafka_consumer_loop():
     i = 0
     while True:
         msg = consumer.poll(1.0)
-        print("Polling for messages...", i)
+        # print("Polling for messages...", i)
         i += 1  
         if msg is None:
             continue
@@ -44,6 +44,15 @@ async def lifespan(app: fastapi.FastAPI):
 
 @app.get("/messages", status_code=200)
 def get_messages() -> dict:
+    return {
+        "status":"success",
+        "data": messages
+    }
+
+@app.delete("/messages", status_code=200)
+def delete_messages() -> dict:
+    global messages
+    messages = []
     return {
         "status":"success",
         "data": messages
