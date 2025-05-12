@@ -2,7 +2,7 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-RUN pip install docker uvicorn fastapi requests hazelcast-python-client 
+RUN pip install docker uvicorn fastapi requests hazelcast-python-client  python-consul
 
 
 COPY . . 

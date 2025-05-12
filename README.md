@@ -1,9 +1,9 @@
-## Lab 4: Microservices with Hazelcast
+## Lab 5: Microservices with Consul
 
 Author: Taras Lysun
 
 ### Description
-This lab was about further implementing the microservices architecture. The task was to add message queue in order to work with message services.
+This lab was about further implementing the microservices architecture. The task was to add Consul service discovery to the existing microservices.
 
 ### Prerequisites
 - Docker
@@ -16,8 +16,8 @@ This lab was about further implementing the microservices architecture. The task
 Pull the repository
 ```bash
 git clone https://github.com/taraslysun/SA-labs
-git switch micro_mq
 cd SA-labs
+git switch micro_consul
 ```
 
 Make virtual environment
@@ -41,18 +41,14 @@ hostname -I | awk '{print $1}'
 Then run the following command to start the application:
 ```bash
 # if the logging service is not working, change the address to your local ip in the compose.sh
-docker compose up --build
-```
-or (linux-only)
-```bash
-./launch_servers.sh
+docker compose up --build -d
 ```
 
 After setting everything up, you can fill the application either by curl:
 ```bash
 curl -X POST http://localhost:8000/ -H "Content-Type: application/json" -d '{"msg": "Hello, world!"}'
 ```
-or with 100 messages by running the following command:
+or with 10 messages by running the following command:
 ```bash
 python3 fill_system.py
 ```

@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN pip install uvicorn fastapi requests confluent-kafka
+RUN pip install uvicorn fastapi requests confluent-kafka python-consul
 
 EXPOSE 8000
 

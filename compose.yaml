@@ -1,4 +1,40 @@
 services:
+  consul:
+    image: consul:1.15
+    container_name: consul
+    command: agent -server -bootstrap-expect=1 -ui -client=0.0.0.0
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+    networks:
+      - service-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8500/v1/status/leader"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  consul-kv-init:
+    image: consul:1.15
+    container_name: consul-kv-init
+    depends_on:
+      consul:
+        condition: service_healthy
+    networks:
+      - service-network
+    environment:
+      - CONSUL_HTTP_ADDR=consul:8500
+    entrypoint:
+      - "sh"
+      - "-c"
+      - |
+        sleep 5
+        consul kv put hazelcast/cluster_members '[" #:5701"," #:5702"," #:5703"]'
+        consul kv put mq/bootstrap_servers "kafka-1:9092,kafka-2:9092,kafka-3:9092"
+        consul kv put mq/topic "messages"
+        exit 0
+
+
 
   facade-service:
     container_name: facade-service
@@ -7,13 +43,26 @@ services:
       - "8000:8000"
     networks:
       - service-network
+    environment:
+      - SERVICE_NAME=facade-service
+      - SERVICE_PORT=8000
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+      - HOSTNAME=facade-service
+    depends_on:
+      consul:
+        condition: service_healthy
 
   logging-service-1:
     container_name: logging-service-1
     build: ./logging-service
     environment:
       - HZ_PORT=5701
-      - HZ_IP=192.168.1.55
+      - HZ_IP= #
+      - SERVICE_NAME=logging-service
+      - SERVICE_PORT=8001
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
     depends_on:
       kafka-1:
         condition: service_healthy
@@ -22,6 +71,8 @@ services:
       kafka-3:
         condition: service_healthy
       zookeeper-1:
+        condition: service_healthy
+      consul:
         condition: service_healthy
     ports:
       - "8001:8001"
@@ -35,7 +86,11 @@ services:
     build: ./logging-service
     environment:
       - HZ_PORT=5702
-      - HZ_IP=192.168.1.55
+      - HZ_IP= #
+      - SERVICE_NAME=logging-service
+      - SERVICE_PORT=8001
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
     ports:
       - "8002:8001"
     networks:
@@ -48,7 +103,11 @@ services:
     build: ./logging-service
     environment:
       - HZ_PORT=5703
-      - HZ_IP=192.168.1.55
+      - HZ_IP= #
+      - SERVICE_NAME=logging-service
+      - SERVICE_PORT=8001
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
     ports:
       - "8003:8001"
     networks:
@@ -69,6 +128,14 @@ services:
         condition: service_healthy
       zookeeper-1:
         condition: service_healthy    
+      consul:
+        condition: service_healthy
+    environment:
+      - SERVICE_NAME=messages-service
+      - SERVICE_PORT=8005
+      - HOSTNAME=messages-service-1
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
     networks:
       - service-network
     ports:
@@ -86,18 +153,18 @@ services:
         condition: service_healthy
       zookeeper-1:
         condition: service_healthy
+      consul:
+        condition: service_healthy
+    environment:
+      - SERVICE_NAME=messages-service
+      - SERVICE_PORT=8005
+      - HOSTNAME=messages-service-2
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
     networks:
       - service-network
     ports:
       - "8006:8005"
-
-  config-server:
-    container_name: config-server
-    build: ./config-server
-    ports:
-      - "8008:8008"
-    networks:
-      - service-network
 
   zookeeper-1:
     container_name: zookeeper-1
@@ -201,5 +268,4 @@ services:
 
 networks:
   service-network:
-    
-    driver: bridge
+    name: service-network
